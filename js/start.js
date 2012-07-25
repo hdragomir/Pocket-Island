@@ -9,8 +9,7 @@
     wooga.castle.IMAGES_BASE_URL = "images/entities/";
 
     (function () {
-        var style = document.createElement('div').style,
-            prefix;
+        var style = document.createElement('div').style;
         var candidates = {
             webkit: 'webkitTransform',
             moz:    'MozTransform', // 'M' is uppercased
@@ -44,6 +43,35 @@
         window.stop();
         document.location = 'ipad.html';
     }
+
+    (function () {
+        var lastTime = 0;
+        var prefix = wooga.castle.prefix;
+        
+        wooga.castle.requestAnimationFrame = window[prefix + 'RequestAnimationFrame'];
+        wooga.castle.cancelAnimationFrame  = window[prefix + 'CancelAnimationFrame'] || 
+                                             window[prefix + 'CancelRequestAnimationFrame'];
+
+        // fallback to setTimeout/clearTimeout if either request/cancel is not supported
+        if (!wooga.castle.requestAnimationFrame || !wooga.castle.cancelAnimationFrame) {
+            wooga.castle.requestAnimationFrame = function(callback, element) {
+                // Date.now() doesn't exist in old IE
+                var currTime = new Date().getTime();
+                var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+                var id = window.setTimeout(function() { 
+                        callback(currTime + timeToCall); 
+                    }, 
+                    timeToCall
+                );
+                lastTime = currTime + timeToCall;
+                return id;
+            };
+        
+            wooga.castle.cancelAnimationFrame = function(id) {
+                clearTimeout(id);
+            };
+        }
+    }());
 
     (function () {
         var enabledFS = {
